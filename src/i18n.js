@@ -10,7 +10,7 @@ export const LANGUAGES = Object.freeze(['en', 'tr']);
 const EN = {
   'app.title': 'Pathfinding Visualizer',
   'header.clearBoard': 'Clear board',
-  'header.language': 'Switch to Turkish',
+  'header.language': 'TR – switch to Turkish',
   'board.label':
     'Grid editor. Drag to draw walls. Arrow keys move a cursor, Enter paints, S and E move the start and end.',
   'board.brush': 'Brush',
@@ -106,7 +106,7 @@ const EN = {
 const TR = {
   'app.title': 'Yol Bulma Görselleştiricisi',
   'header.clearBoard': 'Tahtayı temizle',
-  'header.language': 'İngilizceye geç',
+  'header.language': 'EN – İngilizceye geç',
   'board.label':
     'Izgara düzenleyici. Duvar çizmek için sürükle. Ok tuşları imleci taşır, Enter boyar, S ve E başlangıcı ve hedefi taşır.',
   'board.brush': 'Fırça',
