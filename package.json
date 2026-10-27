@@ -1,0 +1,11 @@
+{
+  "name": "pathfinding-visualizer",
+  "version": "1.0.0",
+  "description": "Interactive pathfinding visualizer: watch A*, Dijkstra, BFS, DFS and greedy best-first search explore a grid with walls, weights and generated mazes.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pathfinding Visualizer</title>
+    <meta name="description" content="Watch A*, Dijkstra, breadth-first, greedy best-first and depth-first search explore a grid. Draw walls and weights, drag the start and end, generate mazes and compare the paths.">
+    <meta name="theme-color" content="#0f172a">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Pathfinding Visualizer">
+    <meta property="og:description" content="Watch A*, Dijkstra, BFS, greedy best-first and DFS explore a grid with walls, weights and generated mazes.">
+    <meta property="og:url" content="https://celaldrg.github.io/pathfinding-visualizer/">
+    <meta property="og:image" content="https://celaldrg.github.io/pathfinding-visualizer/docs/screenshot.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f172a'/%3E%3Cpath d='M9 23v-8h7V9h7' fill='none' stroke='%230ea5e9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='9' cy='23' r='3.5' fill='%2316a34a'/%3E%3Ccircle cx='23' cy='9' r='3.5' fill='%23e11d48'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="src/main.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#1e293b" />
+          <path d="M9 23v-8h7V9h7" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="9" cy="23" r="3.5" fill="#16a34a" />
+          <circle cx="23" cy="9" r="3.5" fill="#e11d48" />
+        </svg>
+        <h1 data-i18n="app.title">Pathfinding Visualizer</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="clear-board" class="btn btn-quiet btn-collapse" data-i18n-title="header.clearBoard" title="Clear board">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5" />
+          </svg>
+          <span class="btn-text" data-i18n="header.clearBoard">Clear board</span>
+        </button>
+        <button type="button" id="lang-toggle" class="btn btn-quiet btn-lang" data-i18n-aria-label="header.language" data-i18n-title="header.language" aria-label="Switch to Turkish" title="Switch to Turkish">TR</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <div class="stage">
+        <div class="toolbar">
+          <div class="segmented" role="radiogroup" aria-labelledby="brush-label">
+            <span class="segmented-label" id="brush-label" data-i18n="board.brush">Brush</span>
+            <label class="segment"><input type="radio" name="brush" value="wall" checked><span data-i18n="board.wall">Wall</span></label>
+            <label class="segment"><input type="radio" name="brush" value="weight"><span data-i18n="board.weight">Weight</span></label>
+          </div>
+          <p class="hint hint-fine" data-i18n="board.hint">Drag to draw · Shift + drag for weights · right-click erases</p>
+          <p class="hint hint-coarse" data-i18n="board.touchHint">Drag to draw · drag the green or red node to move it</p>
+        </div>
+
+        <div class="board-frame">
+          <div class="board-area" id="board-area">
+            <canvas id="board" tabindex="0" role="application" data-i18n-aria-label="board.label" aria-label="Grid editor. Drag to draw walls. Arrow keys move a cursor, Enter paints, S and E move the start and end."></canvas>
+          </div>
+        </div>
+
+        <ul class="legend" data-i18n-aria-label="legend.label" aria-label="Legend">
+          <li><span class="swatch swatch-start"></span><span data-i18n="legend.start">Start</span></li>
+          <li><span class="swatch swatch-end"></span><span data-i18n="legend.end">End</span></li>
+          <li><span class="swatch swatch-empty"></span><span data-i18n="legend.empty">Empty</span></li>
+          <li><span class="swatch swatch-wall"></span><span data-i18n="legend.wall">Wall</span></li>
+          <li><span class="swatch swatch-weight"></span><span data-i18n="legend.weight">Weight (cost 5)</span></li>
+          <li><span class="swatch swatch-frontier"></span><span data-i18n="legend.frontier">Frontier</span></li>
+          <li><span class="swatch swatch-visited"></span><span data-i18n="legend.visited">Visited</span></li>
+          <li><span class="swatch swatch-path"></span><span data-i18n="legend.path">Path</span></li>
+        </ul>
+      </div>
+
+      <div class="sidebar">
+        <div class="actions">
+          <button type="button" id="visualize" class="btn btn-primary" data-mode="run">
+            <svg class="icon icon-run" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+            <svg class="icon icon-skip" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5v11l8-5.5zM12.5 6.5v11l8-5.5z" /></svg>
+            <span id="visualize-label">Visualize</span>
+          </button>
+          <button type="button" id="clear-path" class="btn" data-i18n="actions.clearPath">Clear path</button>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite" data-tone="idle">Draw walls, drag the start or end, or generate a maze. Then press Visualize.</p>
+
+        <section class="stats-block" aria-labelledby="stats-title">
+          <h2 id="stats-title" class="visually-hidden" data-i18n="stats.label">Run statistics</h2>
+          <dl class="stats">
+            <div class="stat"><dt data-i18n="stats.visited">Visited</dt><dd id="stat-visited">0</dd></div>
+            <div class="stat"><dt data-i18n="stats.length">Length</dt><dd id="stat-length">–</dd></div>
+            <div class="stat"><dt data-i18n="stats.cost">Cost</dt><dd id="stat-cost">–</dd></div>
+            <div class="stat"><dt data-i18n="stats.time">Time</dt><dd id="stat-time">–</dd></div>
+          </dl>
+        </section>
+
+        <section class="card settings" aria-labelledby="settings-title">
+          <h2 id="settings-title" class="card-title" data-i18n="controls.label">Settings</h2>
+          <div class="field">
+            <label class="field-label" for="algorithm" data-i18n="controls.algorithm">Algorithm</label>
+            <select id="algorithm"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="maze" data-i18n="controls.maze">Maze</label>
+            <div class="field-row">
+              <select id="maze"></select>
+              <button type="button" id="generate" class="btn" data-i18n="controls.generate">Generate</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label" id="speed-label" data-i18n="controls.speed">Speed</span>
+            <div class="segmented segmented-fill" id="speed-options" role="radiogroup" aria-labelledby="speed-label"></div>
+          </div>
+        </section>
+
+        <section class="card guarantees" aria-labelledby="guarantees-title">
+          <h2 id="guarantees-title" class="card-title" data-i18n="guarantees.title">Shortest-path guarantees</h2>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="guarantees.algorithm">Algorithm</th>
+                <th scope="col" data-i18n="guarantees.weights">Uses weights</th>
+                <th scope="col" data-i18n="guarantees.shortest">Shortest path</th>
+              </tr>
+            </thead>
+            <tbody id="guarantees-body"></tbody>
+          </table>
+        </section>
+
+        <details class="card disclosure guide">
+          <summary data-i18n="guide.title">How to use</summary>
+          <ul class="guide-list">
+            <li data-i18n="guide.draw">Click or drag on the grid to draw walls.</li>
+            <li data-i18n="guide.weights">Hold Shift or pick the Weight brush to place weights.</li>
+            <li data-i18n="guide.move">Drag the green start or the red end to move it.</li>
+            <li data-i18n="guide.touch">On a touch screen, draw with one finger and use the brush switch for weights.</li>
+          </ul>
+          <h3 class="card-title" data-i18n="keys.title">Keyboard</h3>
+          <dl class="keys">
+            <div><dt><kbd data-i18n="keys.spaceKey">Space</kbd></dt><dd data-i18n="keys.space">Visualize, or skip to the end</dd></div>
+            <div><dt><kbd>C</kbd></dt><dd data-i18n="keys.c">Clear the path</dd></div>
+            <div><dt><kbd>Shift</kbd> + <kbd>C</kbd></dt><dd data-i18n="keys.shiftC">Clear the board</dd></div>
+            <div><dt><kbd>M</kbd></dt><dd data-i18n="keys.m">Generate a maze</dd></div>
+            <div><dt><kbd>W</kbd></dt><dd data-i18n="keys.w">Switch between wall and weight</dd></div>
+            <div><dt><kbd>1</kbd>–<kbd>5</kbd></dt><dd data-i18n="keys.digits">Choose an algorithm</dd></div>
+            <div><dt><kbd data-i18n="keys.arrowsKey">Arrows + Enter</kbd></dt><dd data-i18n="keys.arrows">Move the grid cursor and paint</dd></div>
+            <div><dt><kbd>S</kbd> / <kbd>E</kbd></dt><dd data-i18n="keys.se">Move the start or the end to the cursor</dd></div>
+          </dl>
+        </details>
+
+        <details class="card disclosure about">
+          <summary data-i18n="about.title">About the algorithms</summary>
+          <dl class="about-list" id="about-list"></dl>
+        </details>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <span data-i18n="footer.license">MIT</span>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/celaldrg/pathfinding-visualizer" data-i18n="footer.source">Source on GitHub</a>
+    </footer>
+  </body>
+</html>
